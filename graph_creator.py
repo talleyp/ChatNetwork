@@ -41,14 +41,11 @@ class ChatNetwork:
                 self.G.remove_edge(*edge)
 
 def viz_graph(G):
-    color_map = {1:'#f09494', 2:'#eebcbc', 3:'#72bbd0', 4:'#91f0a1', 5:'#629fff', 6:'#bcc2f2',  
-             7:'#eebcbc', 8:'#f1f0c0', 9:'#d2ffe7', 10:'#caf3a6', 11:'#ffdf55', 12:'#ef77aa', 
-             13:'#d6dcff', 14:'#d2f5f0'} 
-
     plt.figure(figsize=(25,25))
+    edge_width = [G.get_edge_data(*edge)['weight'] for edge in G.edges()]
     options = {
         'edge_color': '#FFDEA2',
-        'width': 1,
+        'width': 0.5,#edge_width,
         'with_labels': True,
         'font_weight': 'regular',
     }
@@ -56,16 +53,53 @@ def viz_graph(G):
     sizes = [G.degree[node] for node in G]
 
     """
-    Using the spring layout : 
+    Using the spring layout :
     - k controls the distance between the nodes and varies between 0 and 1
     - iterations is the number of times simulated annealing is run
     default k=0.1 and iterations=50
     """
-    nx.draw(G, node_color=sizes, node_size=sizes, pos=nx.spring_layout(G, k=0.25, iterations=50), **options)
+    nx.draw(G, node_color=sizes, node_size=sizes*10, pos=nx.spring_layout(G, k=0.25, iterations=50), **options)
     ax = plt.gca()
-    ax.collections[0].set_edgecolor("#555555") 
+    #ax.collections[0].set_edgecolor("#555555")
     plt.show()
-                
+
+class NetworkAnalysis:
+    def __init__(self,given_graph):
+        self.G = given_graph
+        #self.find_cliques()
+        self.lonely_people()
+
+    def find_cliques(self):
+        G2 = self.G.to_undirected()
+        big_cliq=nx.make_max_clique_graph(G2)
+        viz_graph(big_cliq)
+
+    def lonely_people(self):
+        pls_respond = {}
+        first_node = True
+        for edge in G.edges():
+            n0 = edge[0]
+            n1 = edge[1]
+            w0 = G.get_edge_data(n0,n1)['weight']
+            try:
+                w1 = G.get_edge_data(n1,n0)['weight']
+            except TypeError:
+                w1=0
+            diff = w1-w0
+            if diff > 0:
+                dic_edge = (n1,n0)
+            else:
+                dic_edge = (n0,n1)
+            if ((n0,n1) not in pls_respond) and ((n1,n0) not in pls_respond):
+                pls_respond[dic_edge] = int(abs(diff)*10)
+        max_n = 9
+        n=0
+        for key, value in sorted(pls_respond.items(), key=lambda item: (item[1], item[0]),reverse=True):
+            print("%s: %s" % (key, value))
+            if n > max_n:
+                break
+            n+=1
+
 if __name__ == "__main__":
     G = nx.DiGraph()
     n = 0
@@ -76,5 +110,8 @@ if __name__ == "__main__":
                 clean=True
             ChatNetwork(G,line,clean)
             clean=False
-            n = n+1
-    viz_graph(G)
+        n = n+1
+    #nx.write_gml(G,'data/weighted.gml')
+    #G = nx.read_gml('data/weighted.gml')
+    #viz_graph(G)
+    NetworkAnalysis(G)
