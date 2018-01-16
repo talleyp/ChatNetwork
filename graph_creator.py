@@ -17,12 +17,16 @@ class ChatNetwork:
         return users
 
     def test_line(self, line):
-        weight_inc = 0.1
-        timestamp, text = line.split('] ',1)
+        weight_inc = 1
+        try:
+            timestamp, text = line.split('] ',1)
+        except ValueError:
+            text = " : "
         sender, message = text.split(': ',1)
         if sender not in self.users:
             self.users.append(sender)
         for word in message.split(' '):
+            word = word.strip('@')
             if (word in self.users) and (word != sender):
                 self.G.add_node(sender)
                 self.G.add_node(word)
@@ -67,12 +71,21 @@ class NetworkAnalysis:
     def __init__(self,given_graph):
         self.G = given_graph
         #self.find_cliques()
-        self.lonely_people()
+        #self.lonely_people()
+        self.cool_kidz()
 
     def find_cliques(self):
         G2 = self.G.to_undirected()
         big_cliq=nx.make_max_clique_graph(G2)
         viz_graph(big_cliq)
+
+    def cool_kidz(self):
+        all_deg = G.degree()
+        for key, value in sorted(all_deg.items(), key=lambda item: (item[1], item[0]),reverse=True):
+            print("%s: %s" % (key, value))
+            if n > max_n:
+                break
+            n+=1
 
     def lonely_people(self):
         pls_respond = {}
@@ -111,7 +124,11 @@ if __name__ == "__main__":
             ChatNetwork(G,line,clean)
             clean=False
         n = n+1
+    G_out = G
+    for edge in G_out.edges():
+        del G[edge[0]][edge[1]]['date']
+    nx.write_gml(G,'data/twitch.gml')
     #nx.write_gml(G,'data/weighted.gml')
     #G = nx.read_gml('data/weighted.gml')
     #viz_graph(G)
-    NetworkAnalysis(G)
+    #NetworkAnalysis(G)
