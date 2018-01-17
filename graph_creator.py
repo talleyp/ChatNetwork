@@ -2,43 +2,38 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 
-class ChatNetwork:
-    def __init__(self,old_graph,line,clean=False):
-        self.G = old_graph
-        self.users = self.get_users()
-        self.test_line(line)
-        if clean:
-            self.clean_edges()
+def get_users(user_file):
+    with open(user_file,'r') as u_f:
+        user_soup = u_f.read()
+        users = user_soup.split('\n')
+    return users
 
-    def get_users(self):
-        with open('data/user_list','r') as u_f:
-            user_soup = u_f.read()
-            users = user_soup.split('\n')
-        return users
-
-    def test_line(self, line):
-        weight_inc = 0.1
+def test_line(G, line, users):
+    weight_inc = 1
+    try:
         timestamp, text = line.split('] ',1)
-        sender, message = text.split(': ',1)
-        if sender not in self.users:
-            self.users.append(sender)
-        for word in message.split(' '):
-            if (word in self.users) and (word != sender):
-                self.G.add_node(sender)
-                self.G.add_node(word)
-                new_weight = weight_inc
-                if self.G.get_edge_data(sender,word):
-                    new_weight = self.G.get_edge_data(sender,word)['weight'] + weight_inc
-                self.G.add_edge(sender,word,weight=new_weight,date=datetime.now())
+    except ValueError:
+        return
+    sender, message = text.split(': ',1)
+    if sender not in users:
+        users.append(sender)
+    for word in message.split(' '):
+        if (word in users) and (word != sender):
+            G.add_node(sender)
+            G.add_node(word)
+            new_weight = weight_inc
+            if G.get_edge_data(sender,word):
+                new_weight = G.get_edge_data(sender,word)['weight'] + weight_inc
+            G.add_edge(sender,word,weight=new_weight)#,date=datetime.now())
 
-    def clean_edges(self):
-        time_treshhold = 1
-        cur_g = self.G#.edges()
-        for edge in list(cur_g.edges()):
-            edge_time = cur_g.get_edge_data(*edge)['date']
-            delta = datetime.now() - edge_time
-            if delta > timedelta(minutes=1):
-                self.G.remove_edge(*edge)
+def clean_edges(G):
+    time_treshhold = 1
+    cur_g = G
+    for edge in list(cur_g.edges()):
+        edge_time = cur_g.get_edge_data(*edge)['date']
+        delta = datetime.now() - edge_time
+        if delta > timedelta(minutes=1):
+            G.remove_edge(*edge)
 
 def viz_graph(G):
     plt.figure(figsize=(25,25))
@@ -63,55 +58,55 @@ def viz_graph(G):
     #ax.collections[0].set_edgecolor("#555555")
     plt.show()
 
-class NetworkAnalysis:
-    def __init__(self,given_graph):
-        self.G = given_graph
-        #self.find_cliques()
-        self.lonely_people()
 
-    def find_cliques(self):
-        G2 = self.G.to_undirected()
-        big_cliq=nx.make_max_clique_graph(G2)
-        viz_graph(big_cliq)
+def find_cliques(G):
+    G2 = G.to_undirected()
+    big_cliq=nx.make_max_clique_graph(G2)
+    viz_graph(big_cliq)
 
-    def lonely_people(self):
-        pls_respond = {}
-        first_node = True
-        for edge in G.edges():
-            n0 = edge[0]
-            n1 = edge[1]
-            w0 = G.get_edge_data(n0,n1)['weight']
-            try:
-                w1 = G.get_edge_data(n1,n0)['weight']
-            except TypeError:
-                w1=0
-            diff = w1-w0
-            if diff > 0:
-                dic_edge = (n1,n0)
-            else:
-                dic_edge = (n0,n1)
-            if ((n0,n1) not in pls_respond) and ((n1,n0) not in pls_respond):
-                pls_respond[dic_edge] = int(abs(diff)*10)
-        max_n = 9
-        n=0
-        for key, value in sorted(pls_respond.items(), key=lambda item: (item[1], item[0]),reverse=True):
-            print("%s: %s" % (key, value))
-            if n > max_n:
-                break
-            n+=1
+def lonely_people(G):
+    pls_respond = {}
+    first_node = True
+    for edge in G.edges():
+        n0 = edge[0]
+        n1 = edge[1]
+        w0 = G.get_edge_data(n0,n1)['weight']
+        try:
+            w1 = G.get_edge_data(n1,n0)['weight']
+        except TypeError:
+            w1=0
+        diff = w1-w0
+        if diff > 0:
+            dic_edge = (n1,n0)
+        else:
+            dic_edge = (n0,n1)
+        if ((n0,n1) not in pls_respond) and ((n1,n0) not in pls_respond):
+            pls_respond[dic_edge] = int(abs(diff)*10)
+    max_n = 9
+    n=0
+    for key, value in sorted(pls_respond.items(), key=lambda item: (item[1], item[0]),reverse=True):
+        print("%s: %s" % (key, value))
+        if n > max_n:
+            break
+        n+=1
 
 if __name__ == "__main__":
+    out_file = 'data/soda.gml'
+    in_file = 'data/soda_twitch'
+    user_file = 'data/soda_users'
+
     G = nx.DiGraph()
     n = 0
     clean = False
-    with open('data/example_log','r') as l_f:
+    users = get_users(user_file):
+    with open(in_file,'r') as l_f:
         for line in l_f:
-            if n>10:
-                clean=True
-            ChatNetwork(G,line,clean)
-            clean=False
-        n = n+1
-    #nx.write_gml(G,'data/weighted.gml')
-    #G = nx.read_gml('data/weighted.gml')
+            if n>100:
+                clean_edges(G)
+                n = 0
+            test_line(G,line,users)
+        #n = n+1
+    nx.write_gml(G,out_file)
+    #G = nx.read_gml('data/soda.gml')
     #viz_graph(G)
-    NetworkAnalysis(G)
+    #NetworkAnalysis(G)
