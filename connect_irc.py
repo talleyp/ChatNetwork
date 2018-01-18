@@ -2,6 +2,7 @@ import sys
 import socket
 import string
 import argparse
+from time import sleep
 
 class ircbot():
     """
@@ -22,7 +23,7 @@ class ircbot():
         	self.irc.connect((self.HOST, self.PORT))
         	print("Connected to %s\n" % self.HOST)
         	self.irc.send(("NICK %s\r\n" % self.NICK).encode())
-
+            sleep(1)
         	self.irc.send(("USER %s %s bla :%s\r\n" % (self.IDENT,
         							self.HOST,
         							self.REALNAME)).encode())

@@ -24,7 +24,7 @@ def test_line(G, line, users):
             new_weight = weight_inc
             if G.get_edge_data(sender,word):
                 new_weight = G.get_edge_data(sender,word)['weight'] + weight_inc
-            G.add_edge(sender,word,weight=new_weight)#,date=datetime.now())
+            G.add_edge(sender,word,weight=new_weight,date=datetime.now())
 
 def clean_edges(G):
     time_treshhold = 1
@@ -32,7 +32,7 @@ def clean_edges(G):
     for edge in list(cur_g.edges()):
         edge_time = cur_g.get_edge_data(*edge)['date']
         delta = datetime.now() - edge_time
-        if delta > timedelta(minutes=1):
+        if delta > timedelta(hours=12):
             G.remove_edge(*edge)
 
 def viz_graph(G):
@@ -101,12 +101,10 @@ if __name__ == "__main__":
     users = get_users(user_file):
     with open(in_file,'r') as l_f:
         for line in l_f:
-            if n>100:
+            if n>1000:
                 clean_edges(G)
                 n = 0
             test_line(G,line,users)
-        #n = n+1
-    nx.write_gml(G,out_file)
-    #G = nx.read_gml('data/soda.gml')
-    #viz_graph(G)
-    #NetworkAnalysis(G)
+        n = n+1
+    
+
