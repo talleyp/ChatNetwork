@@ -88,7 +88,6 @@ class GraphMaker:
             print("thread terminating...")
         thread.start_new_thread(run, ())
 
-
 def viz_graph(G):
     plt.figure(figsize=(25,25))
     edge_width = [G.get_edge_data(*edge)['weight'] for edge in G.edges()]
@@ -111,7 +110,6 @@ def viz_graph(G):
     ax = plt.gca()
     #ax.collections[0].set_edgecolor("#555555")
     plt.show()
-
 
 def find_cliques(G):
     G2 = G.to_undirected()
@@ -144,26 +142,5 @@ def lonely_people(G):
             break
         n+=1
 
-
-
 if __name__ == "__main__":
     GraphMaker()
-
-#if __name__ == "__main__":
-    #out_file = 'data/soda.gml'
-    #in_file = 'data/soda_twitch'
-    #user_file = 'data/soda_users'
-
-    #G = nx.DiGraph()
-    #n = 0
-    #clean = False
-    #users = get_users(user_file)
-    #with open(in_file,'r') as l_f:
-    #    for line in l_f:
-    #        if n>1000:
-    #            clean_edges(G)
-    #            n = 0
-    #        test_line(G,line,users)
-    #    n = n+1
-    
-
