@@ -11,7 +11,7 @@ class ChatNetwork:
             self.clean_edges()
 
     def get_users(self):
-        with open('data/user_list','r') as u_f:
+        with open('data/twitch_users','r') as u_f:
             user_soup = u_f.read()
             users = user_soup.split('\n')
         return users
@@ -117,13 +117,13 @@ if __name__ == "__main__":
     G = nx.DiGraph()
     n = 0
     clean = False
-    with open('data/example_log','r') as l_f:
+    with open('data/twitch_example','r') as l_f:
         for line in l_f:
             if n>10:
                 clean=True
             ChatNetwork(G,line,clean)
             clean=False
-        n = n+1
+        #n = n+1
     G_out = G
     for edge in G_out.edges():
         del G[edge[0]][edge[1]]['date']
