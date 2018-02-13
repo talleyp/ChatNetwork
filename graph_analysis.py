@@ -1,4 +1,5 @@
 import Networkx as nx
+from datetime import datetime
 
 def component_analysis(G):
     '''Find distribution of size of componenets, and their average degree within the component'''
@@ -31,7 +32,7 @@ def lonely_people(G):
             else:
                 dic_edge = (n0,n1)
             if ((n0,n1) not in pls_respond) and ((n1,n0) not in pls_respond):
-                pls_respond[dic_edge] = int(abs(diff)*10)
+                pls_respond[dic_edge] = abs(diff)
     max_n = 9
     n=0
     for key, value in sorted(pls_respond.items(), key=lambda item: (item[1], item[0]),reverse=True):
@@ -64,3 +65,21 @@ def basics(G):
     '''Not custom measurements'''
     rec = nx.reciprocity(G) # likelihood of vertices in a directed network to be mutually linked
     rich_club = nx.rich_club_coefficient(G)
+    return (rec, rich_club)
+
+def time_analysis(line,clean_now,ns_cnt,msg_count,soc_ts):
+    try:
+        timestamp, text = line.split('] ',1)
+    except ValueError:
+        return
+    dt_timestamp = datetime.strptime(timestamp, "[%Y-%m-%d %H:%M:%S %Z")
+    str_timestamp = dt_timestamp.strftime("%Y-%m-%d %H:%M:%S")
+    if clean_now and dt_timestamp.minute == 0:
+        hour_soc = ns_cnt / msg_count
+        rate = msg_count / 60
+        soc_ts[dt_timestamp] = {"soc":hour_soc,"rate":rate}
+
+        clean_now = False
+        msg_count = 0
+        ns_cnt = 0
+    return (clean_now, ns_cnt, msg_count, soc_ts)
