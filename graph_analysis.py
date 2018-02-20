@@ -1,5 +1,5 @@
-import Networkx as nx
-from datetime import datetime
+#import Networkx as nx
+#from datetime import datetime
 
 def component_analysis(G):
     '''Find distribution of size of componenets, and their average degree within the component'''
